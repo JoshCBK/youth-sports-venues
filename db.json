@@ -1,0 +1,104 @@
+{
+  "venues": [
+    {
+      "id": "v1",
+      "name": "Riverfront Baseball Complex",
+      "city": "Harrisburg, PA",
+      "coords": {
+        "lat": 40.2732,
+        "lng": -76.8867
+      },
+      "reviews": [
+        {
+          "id": "pZt3bbWpLUamzF2gYUsPr",
+          "author": "Josh C",
+          "text": "This is a test",
+          "ratings": {
+            "bathrooms": 4,
+            "food": 4,
+            "parking": 2,
+            "fields": 4
+          },
+          "photos": [],
+          "createdAt": "2025-08-20T15:01:03.635Z"
+        },
+        {
+          "id": "r101",
+          "author": "Sarah L.",
+          "text": "Bathrooms were surprisingly clean. Parking was easy, food limited though.",
+          "ratings": {
+            "bathrooms": 4,
+            "food": 2,
+            "parking": 5,
+            "fields": 4
+          },
+          "photos": [],
+          "createdAt": "2025-08-01T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "v2",
+      "name": "Valley Park Fields",
+      "city": "Lancaster, PA",
+      "coords": {
+        "lat": 40.0379,
+        "lng": -76.3055
+      },
+      "reviews": [
+        {
+          "id": "r102",
+          "author": "Mark D.",
+          "text": "Fields were great but parking was a nightmare.",
+          "ratings": {
+            "bathrooms": 2,
+            "food": 4,
+            "parking": 2,
+            "fields": 5
+          },
+          "photos": [],
+          "createdAt": "2025-08-05T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "v3",
+      "name": "Cooperstown Dreams Park",
+      "city": "Cooperstown, NY",
+      "coords": {
+        "lat": 42.7001,
+        "lng": -74.9334
+      },
+      "reviews": [
+        {
+          "id": "oDCFR7xQyCJDFIE3Ti9aN",
+          "author": "Josh C",
+          "text": "",
+          "ratings": {
+            "bathrooms": 3,
+            "food": 3,
+            "parking": 3,
+            "fields": 3
+          },
+          "photos": [
+            "/uploads/tSHGKApPmvljmSkv8pxim.png"
+          ],
+          "createdAt": "2025-08-20T15:03:13.020Z"
+        },
+        {
+          "id": "r103",
+          "author": "Emily R.",
+          "text": "One of the best youth baseball experiences in the country!",
+          "ratings": {
+            "bathrooms": 5,
+            "food": 4,
+            "parking": 4,
+            "fields": 5
+          },
+          "photos": [],
+          "createdAt": "2025-08-10T09:00:00Z"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>⚾ Sports Field Reviews</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 z-20 bg-white border-b border-gray-200 p-4 shadow-sm">
+    <h1 class="text-xl font-bold">⚾ Sports Field Reviews</h1>
+    <p class="text-sm text-gray-500">Find and review youth baseball venues</p>
+  </header>
+
+  <main id="app" class="p-4"></main>
+
+  <template id="venue-card">
+    <div class="cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow hover:shadow-md">
+      <h3 class="font-semibold text-lg name"></h3>
+      <p class="text-sm text-gray-500 flex items-center gap-1 city"></p>
+      <div class="mt-3 grid grid-cols-2 gap-2 text-sm ratings"></div>
+    </div>
+  </template>
+
+  <script>
+    const API = '/api';
+
+    const app = document.getElementById('app');
+
+    function starRow(label, value = 0){
+  const row = document.createElement('div');
+  row.className = 'flex items-center gap-2';
+  row.innerHTML = `<span class="capitalize w-24">${label}:</span>` + stars(value || 0);
+  return row;
+}
+
+    function stars(value){
+      let s = '<div class="flex items-center gap-0.5">';
+      for(let i=0;i<5;i++){
+        s += i < value
+          ? '<svg class="w-4 h-4 text-yellow-400 fill-yellow-400" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568L24 9.75l-6 5.848L19.335 24 12 19.897 4.665 24 6 15.598 0 9.75l8.332-1.595z"/></svg>'
+          : '<svg class="w-4 h-4 text-gray-300" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568L24 9.75l-6 5.848L19.335 24 12 19.897 4.665 24 6 15.598 0 9.75l8.332-1.595z"/></svg>';
+      }
+      s += '</div>';
+      return s;
+    }
+
+    function route(){
+      const hash = location.hash.replace('#','');
+      if(!hash) return { page: 'list' };
+      const match = hash.match(/^venue:(.+)$/);
+      if(match) return { page: 'detail', id: match[1] };
+      return { page: 'list' };
+    }
+
+    async function loadList(){
+      const res = await fetch(API + '/venues');
+      const data = await res.json();
+      app.innerHTML = '';
+      const grid = document.createElement('div');
+      grid.className = 'grid gap-4 md:grid-cols-2';
+      app.appendChild(grid);
+
+      data.forEach(v => {
+        const t = document.getElementById('venue-card');
+        const node = t.content.cloneNode(true);
+        node.querySelector('.name').textContent = v.name;
+        node.querySelector('.city').textContent = v.city;
+
+        const ratings = node.querySelector('.ratings');
+        ratings.appendChild(starRow('bathrooms', v.avgRatings.bathrooms));
+        ratings.appendChild(starRow('food', v.avgRatings.food));
+        ratings.appendChild(starRow('parking', v.avgRatings.parking));
+        ratings.appendChild(starRow('fields', v.avgRatings.fields));
+
+        const card = node.children[0];
+        card.addEventListener('click', () => {
+          location.hash = 'venue:' + v.id;
+        });
+        grid.appendChild(node);
+      });
+    }
+
+    async function loadDetail(id){
+      const res = await fetch(API + '/venues/' + id);
+      if(res.status !== 200){
+        app.innerHTML = '<p class="text-red-600">Venue not found.</p>';
+        return;
+      }
+      const v = await res.json();
+      app.innerHTML = '';
+
+      const back = document.createElement('button');
+      back.className = 'mb-4 text-blue-600 hover:underline';
+      back.textContent = '← Back';
+      back.onclick = () => { location.hash = ''; };
+      app.appendChild(back);
+
+      const title = document.createElement('h2');
+      title.className = 'text-2xl font-bold';
+      title.textContent = v.name;
+      app.appendChild(title);
+
+      const city = document.createElement('p');
+      city.className = 'text-gray-500 flex items-center gap-1';
+      city.textContent = v.city;
+      app.appendChild(city);
+
+      // Map
+      const mapWrap = document.createElement('div');
+      mapWrap.className = 'mt-4 w-full h-64 overflow-hidden rounded-xl border border-gray-200';
+      const iframe = document.createElement('iframe');
+      iframe.width = '100%';
+      iframe.height = '100%';
+      iframe.style.border = 0;
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'no-referrer-when-downgrade';
+      // Using Google Maps public embed (no API key needed) with lat,lng query
+      iframe.src = `https://www.google.com/maps?q=${v.coords.lat},${v.coords.lng}&z=14&output=embed`;
+      mapWrap.appendChild(iframe);
+      app.appendChild(mapWrap);
+
+      const avgTitle = document.createElement('h3');
+      avgTitle.className = 'mt-6 text-lg font-semibold';
+      avgTitle.textContent = 'Average Ratings';
+      app.appendChild(avgTitle);
+
+      const avg = document.createElement('div');
+      avg.className = 'mt-2 grid grid-cols-2 gap-2 text-sm';
+      avg.appendChild(starRow('bathrooms', v.avgRatings.bathrooms));
+      avg.appendChild(starRow('food', v.avgRatings.food));
+      avg.appendChild(starRow('parking', v.avgRatings.parking));
+      avg.appendChild(starRow('fields', v.avgRatings.fields));
+      app.appendChild(avg);
+
+      const revTitle = document.createElement('h3');
+      revTitle.className = 'mt-6 text-lg font-semibold';
+      revTitle.textContent = 'Reviews';
+      app.appendChild(revTitle);
+
+      const list = document.createElement('div');
+      list.className = 'mt-2 space-y-4';
+      v.reviews.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'rounded-xl border border-gray-200 p-3 bg-white';
+        const text = document.createElement('p');
+        text.className = 'text-sm text-gray-700';
+        text.textContent = '“' + r.text + '”';
+        const meta = document.createElement('div');
+        meta.className = 'mt-2 text-xs text-gray-500';
+        meta.textContent = '- ' + (r.author || 'Anonymous');
+        item.appendChild(text);
+        if (r.photos && r.photos.length){
+          const pw = document.createElement('div');
+          pw.className = 'mt-2 flex gap-2 flex-wrap';
+          r.photos.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'h-20 w-28 object-cover rounded';
+            pw.appendChild(img);
+          });
+          item.appendChild(pw);
+        }
+        item.appendChild(meta);
+        list.appendChild(item);
+      });
+      app.appendChild(list);
+
+      // Review form
+      const form = document.createElement('form');
+      form.className = 'mt-6 grid gap-3 rounded-2xl border border-gray-200 bg-white p-4';
+      form.innerHTML = `
+        <div class="grid gap-1">
+          <label class="text-sm font-medium">Your name</label>
+          <input name="author" class="rounded-xl border border-gray-300 px-3 py-2" placeholder="Jane D." />
+        </div>
+        <div class="grid gap-1">
+          <label class="text-sm font-medium">Your review</label>
+          <textarea name="text" rows="3" class="rounded-xl border border-gray-300 px-3 py-2" placeholder="Share helpful tips…"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          ${['bathrooms','food','parking','fields'].map(cat => `
+            <label class="grid gap-1">
+              <span class="font-medium capitalize">${cat}</span>
+              <select name="${cat}" class="rounded-xl border border-gray-300 px-3 py-2">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>`).join('')}
+        </div>
+        <div class="grid gap-1">
+          <label class="text-sm font-medium">Photos (optional)</label>
+          <input type="file" name="photos" accept="image/*" multiple class="rounded-xl border border-gray-300 px-3 py-2" />
+        </div>
+        <button class="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white">Submit review</button>
+      `;
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const resp = await fetch(API + '/venues/' + id + '/reviews', {
+          method: 'POST',
+          body: fd
+        });
+        if (resp.status === 201) {
+          location.reload();
+        } else {
+          alert('Error submitting review');
+        }
+      };
+      app.appendChild(form);
+    }
+
+    function render(){
+      const r = route();
+      if(r.page === 'list') loadList();
+      else if(r.page === 'detail') loadDetail(r.id);
+    }
+    window.addEventListener('hashchange', render);
+    render();
+  </script>
+
+  <footer class="mt-10 border-t border-gray-200 bg-white p-4 text-center text-xs text-gray-500">
+    © <span id="year"></span> Sports Field Reviews. Built for parents, by parents.
+  </footer>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
